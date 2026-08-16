@@ -1,5 +1,7 @@
 # CareerHub
 
+[![CI/CD](https://github.com/kunaManoj/careerhub/actions/workflows/deploy.yml/badge.svg)](https://github.com/kunaManoj/careerhub/actions/workflows/deploy.yml)
+
 A live job platform for the Indian market — job seekers search, match, apply and track
 applications in real time; employers publish roles that go live on the board instantly.
 
@@ -7,7 +9,7 @@ applications in real time; employers publish roles that go live on the board ins
 
 **Job seeker**
 - Search across roles, skills and companies (press `/` to focus) with city autocomplete
-- Filters: 8 categories, 4 contract types, 4 experience levels, remote-only, minimum salary (₹)
+- Filters:categories, contract types, experience levels, remote-only, minimum salary
 - Sort by recency or salary, load-more pagination, recently-viewed strip
 - Save/shortlist roles, full job detail drawer with similar-role suggestions
 - Validated application flow with a live status timeline
@@ -96,8 +98,25 @@ src/
 | `npm run typecheck` | Strict TypeScript check with no emit |
 | `npm run seed`      | Load companies, jobs and sample applications into Supabase (re-runnable) |
 
-## Deployment
+## CI/CD & deployment
 
-Static SPA — `npm run build` produces `dist/`, deployable to any static host (Vercel,
-Netlify, S3). For live-API deploys, set the two `VITE_SUPABASE_*` variables in the host's
-environment configuration.
+The pipeline lives in `.github/workflows/deploy.yml` and runs on every push and PR:
+
+| Job | Runs on | What it does |
+|---|---|---|
+| **Quality gate** | every push & PR | `npm ci` → `typecheck` → `build` (with Supabase env inlined); uploads `dist/` as an artifact on `main` |
+| **Deploy to Vercel** | `main` only, after quality passes | pulls the Vercel project env, builds with `vercel build --prod`, and promotes to production via `vercel deploy --prebuilt --prod` |
+
+Concurrent runs on the same branch are cancelled automatically, so the newest commit
+always wins.
+
+**Repository secrets** (GitHub → Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|---|---|
+| `VERCEL_TOKEN` | Vercel account token (vercel.com → Account → Tokens) |
+| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | from `.vercel/project.json` after `npx vercel link` |
+| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | inlined into the client bundle at build time |
+
+The production build is a static SPA talking to Supabase at runtime, so Vercel needs
+no server, functions or cold-start configuration.

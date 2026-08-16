@@ -6,6 +6,9 @@ dist/
 dist-ssr/
 *.local
 
+# vercel CLI linkage (contains project/org ids)
+.vercel
+
 # environment — never commit secrets
 .env
 .env.local

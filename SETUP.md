@@ -63,10 +63,17 @@ npm run build      # → dist/
 npm run preview    # serve the production build locally
 ```
 
-## Deploying (Vercel)
-1. Import the Git repository in Vercel (Framework: Vite).
-2. Add environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
-3. Build command `npm run build`, output directory `dist`.
+## Deploying (Vercel via the CI/CD pipeline)
+The pipeline (`.github/workflows/deploy.yml`) deploys `main` to Vercel automatically.
+One-time wiring:
+1. Create the Vercel project: in the repo root run `npx vercel link` (creates
+   `.vercel/project.json` with your org + project ids — already gitignored).
+2. Create a token at vercel.com → Account → Tokens.
+3. GitHub → repo → **Settings → Secrets and variables → Actions** — add:
+   `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`,
+   `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+4. Push to `main` — the **Actions** tab shows Quality gate → Deploy, and the app
+   goes live at your `*.vercel.app` URL.
 
 ## Key safety
 - `anon key` — public by design; safe in the client. RLS policies guard it.
