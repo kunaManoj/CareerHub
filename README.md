@@ -1,9 +1,24 @@
 # CareerHub
 
-[![CI/CD](https://github.com/kunaManoj/careerhub/actions/workflows/deploy.yml/badge.svg)](https://github.com/kunaManoj/careerhub/actions/workflows/deploy.yml)
-
 A live job platform for the Indian market — job seekers search, match, apply and track
 applications in real time; employers publish roles that go live on the board instantly.
+
+Live demo: https://careerhub-eight.vercel.app/
+GitHub: https://github.com/kunaManoj/CareerHub
+
+---
+
+## Project status
+
+This project is production-ready for a demonstration deployment using:
+- Vite + React + TypeScript frontend
+- Supabase PostgreSQL backend
+- Vercel hosting
+- GitHub Actions CI/CD
+
+---
+
+## Product overview
 
 ## Features
 
@@ -100,23 +115,39 @@ src/
 
 ## CI/CD & deployment
 
-The pipeline lives in `.github/workflows/deploy.yml` and runs on every push and PR:
+The pipeline lives in `.github/workflows/ci-cd.yml` and runs on every push and PR.
 
-| Job | Runs on | What it does |
-|---|---|---|
-| **Quality gate** | every push & PR | `npm ci` → `typecheck` → `build` (with Supabase env inlined); uploads `dist/` as an artifact on `main` |
-| **Deploy to Vercel** | `main` only, after quality passes | pulls the Vercel project env, builds with `vercel build --prod`, and promotes to production via `vercel deploy --prebuilt --prod` |
+### Workflow behavior
+- Quality gate runs on every push and pull request
+- It installs dependencies, runs TypeScript checks, and builds the app
+- The production deploy job runs only on `main`
+- Deployment is handled through Vercel with the Vercel CLI
 
-Concurrent runs on the same branch are cancelled automatically, so the newest commit
-always wins.
+### Required GitHub secrets
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
-**Repository secrets** (GitHub → Settings → Secrets and variables → Actions):
+### Production hosting
+The app is deployed to Vercel as a static SPA. It talks to Supabase at runtime through environment variables, so no serverless backend or custom Node service is required.
 
-| Secret | Value |
-|---|---|
-| `VERCEL_TOKEN` | Vercel account token (vercel.com → Account → Tokens) |
-| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | from `.vercel/project.json` after `npx vercel link` |
-| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | inlined into the client bundle at build time |
+---
 
-The production build is a static SPA talking to Supabase at runtime, so Vercel needs
-no server, functions or cold-start configuration.
+## Production readiness checklist
+
+- Vercel project connected to GitHub repository
+- Supabase project configured with schema from `backend/schema.sql`
+- Seed data loaded with `npm run seed`
+- Required environment variables set in Vercel
+- GitHub Actions workflow configured for quality checks and production deploys
+- Documentation added in `documentation.md`
+
+---
+
+## Related documentation
+
+- `documentation.md` — full project overview and architecture notes
+- `SETUP.md` — local setup steps and environment instructions
+- `backend/README.md` — backend design notes and Supabase architecture
