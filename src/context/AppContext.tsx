@@ -42,6 +42,7 @@ interface AppContextValue {
   dashboardTab: "applications" | "saved";
   setDashboardTab: (t: "applications" | "saved") => void;
   initialLoading: boolean;
+  loadError: string | null;
   searching: boolean;
   selectedJobId: string | null;
   applyJobId: string | null;
@@ -75,6 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [view, setViewRaw] = useState<View>("board");
   const [dashboardTab, setDashboardTab] = useState<"applications" | "saved">("applications");
   const [initialLoading, setInitialLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [applyJobId, setApplyJobId] = useState<string | null>(null);
@@ -97,18 +99,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [cos, js, apps] = await Promise.all([
-        api.fetchCompanies(),
-        api.fetchJobs(),
-        api.fetchApplications(),
-      ]);
-      if (!mounted) return;
-      setCompanies(cos);
-      setJobs(js);
-      setApplications(api.progressApplications(apps).next);
-      setSavedIds(api.fetchSavedIds());
-      setRecentIds(api.fetchRecentIds());
-      setInitialLoading(false);
+      try {
+        const [cos, js, apps] = await Promise.all([
+          api.fetchCompanies(),
+          api.fetchJobs(),
+          api.fetchApplications(),
+        ]);
+        if (!mounted) return;
+        setCompanies(cos);
+        setJobs(js);
+        setApplications(api.progressApplications(apps).next);
+        setSavedIds(api.fetchSavedIds());
+        setRecentIds(api.fetchRecentIds());
+      } catch (error) {
+        if (!mounted) return;
+        setLoadError(error instanceof Error ? error.message : "Unable to load the CareerHub backend.");
+      } finally {
+        if (mounted) setInitialLoading(false);
+      }
     })();
     return () => {
       mounted = false;
@@ -258,7 +266,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value: AppContextValue = {
     companies, companyById, jobs, results, applications, savedIds, recentIds, filters,
-    activeFilterCount, view, dashboardTab, setDashboardTab, initialLoading, searching,
+    activeFilterCount, view, dashboardTab, setDashboardTab, initialLoading, loadError, searching,
     selectedJobId, applyJobId, toasts, setView, patchFilters, toggleFilterValue, resetFilters,
     openJob, closeJob, toggleSave, openApply, closeApply, submitApplication, withdrawApplication,
     publishJob, subscribeAlert, pushToast, dismissToast,

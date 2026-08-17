@@ -94,8 +94,8 @@ export function PostJobForm() {
           <span className="text-pine-600">people who ship.</span>
         </h1>
         <p className="mx-auto mt-3 max-w-[520px] text-center text-[14.5px] leading-relaxed text-ink-500">
-          Listings go live on the board instantly. Transparent salary ranges get
-          <span className="font-semibold text-ink-800"> 3.2× more qualified applicants</span> — the range is required for a reason.
+          Listings go live on the board instantly. A clear annual salary range
+          <span className="font-semibold text-ink-800"> helps candidates compare roles with confidence</span> and is required for every listing.
         </p>
       </Reveal>
 

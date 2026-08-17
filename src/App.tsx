@@ -488,8 +488,8 @@ function Footer() {
               <span className="live-dot h-1.5 w-1.5 rounded-full bg-honey-400" />
               Live API · Supabase
             </span>
-            <span>v2.4.1</span>
-            <span className="flex items-center gap-1.5"><Icon name="shield" className="h-3.5 w-3.5 text-pine-400" />SOC 2 Type II</span>
+            <span>v1.0.0</span>
+            <span className="flex items-center gap-1.5"><Icon name="shield" className="h-3.5 w-3.5 text-pine-400" />Supabase RLS</span>
           </span>
         </div>
       </div>
@@ -538,15 +538,21 @@ function ScrollProgress() {
 }
 
 function Shell() {
-  const { view } = useApp();
+  const { view, loadError } = useApp();
   return (
     <div className="flex min-h-screen flex-col">
       <ScrollProgress />
       <Header />
       <main className="flex-1">
-        {view === "board" && <Board />}
-        {view === "dashboard" && <Dashboard />}
-        {view === "post" && <PostJobForm />}
+        {loadError ? (
+          <BackendError message={loadError} />
+        ) : (
+          <>
+            {view === "board" && <Board />}
+            {view === "dashboard" && <Dashboard />}
+            {view === "post" && <PostJobForm />}
+          </>
+        )}
       </main>
       <OfferShowcase />
       <Footer />
@@ -554,6 +560,31 @@ function Shell() {
       <ApplyModal />
       <Toasts />
     </div>
+  );
+}
+
+function BackendError({ message }: { message: string }) {
+  return (
+    <section className="flex min-h-[55vh] items-center justify-center px-4 py-16">
+      <div className="w-full max-w-lg rounded-xl border border-coral-200 bg-surface p-8 text-center shadow-card">
+        <Icon name="shield" className="mx-auto h-8 w-8 text-coral-500" />
+        <p className="mt-4 font-display text-2xl font-bold text-ink-900">The live board is unavailable</p>
+        <p className="mt-2 text-sm leading-6 text-ink-500">
+          CareerHub could not load its Supabase data. Check the environment variables and database setup, then refresh the page.
+        </p>
+        <details className="mt-4 text-left text-xs text-ink-400">
+          <summary className="cursor-pointer select-none text-center">Show technical details</summary>
+          <p className="mt-2 break-words rounded-md bg-mist p-3 font-mono">{message}</p>
+        </details>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-6 rounded-lg bg-pine-600 px-5 py-2.5 font-display text-sm font-bold text-paper transition-colors hover:bg-pine-700"
+        >
+          Refresh connection
+        </button>
+      </div>
+    </section>
   );
 }
 

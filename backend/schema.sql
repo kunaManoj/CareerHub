@@ -97,7 +97,7 @@ create table if not exists job_alerts (
 -- ============================================================
 -- Row Level Security (Supabase)
 --
--- DEMO MODE (below): the product is an assessment demo with no login
+-- DEMO MODE (below): the product is a demo with no login
 -- screen, so the anon key gets read + write access. Every board,
 -- application and posting flow works out of the box.
 --

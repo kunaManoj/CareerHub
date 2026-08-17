@@ -1,406 +1,245 @@
-# CareerHub Documentation
-
-## 1. Project Overview
-
-CareerHub is a job board platform for job seekers and employers. It allows candidates to:
-
-- browse live jobs
-- filter jobs by category, type, level, salary, and location
-- save roles to a shortlist
-- view job details
-- apply for jobs
-- track application status over time
-- upload or paste a resume for role matching
-
-It allows employers to:
-
-- post new jobs
-- publish job listings instantly
-- create company entries when needed
-
-The product is built as a Vite + React + TypeScript frontend and uses Supabase as the real backend database.
-
----
-
-## 2. Business Value
-
-CareerHub solves a real hiring workflow problem:
-
-- job seekers can discover active opportunities quickly
-- employers can publish roles without a custom backend setup
-- companies and candidates interact through a single live data system
-- applications and job lifecycle are tracked in real time
-
-The app is designed around a modern recruitment board workflow, where all business data is live and persisted in a database instead of static mock data.
-
----
-
-## 3. Tech Stack
-
-### Frontend
-- React 18
-- TypeScript
-- Vite
-- Tailwind CSS
-- Custom SVG icon system
-
-### Backend / Data Storage
-- Supabase
-- PostgreSQL inside Supabase
-- Row Level Security (RLS)
-
-### Deployment
-- Vercel for hosting
-- GitHub Actions for CI/CD
-
----
-
-## 4. Folder Structure
-
-### Root level
-- package.json — app scripts and dependencies
-- vite.config.js — Vite config
-- tsconfig.json — TypeScript config
-- index.html — main HTML entry
-- .env.local — local environment config for Supabase
-- .github/workflows/ci-cd.yml — CI/CD pipeline
-
-### Backend
-- backend/schema.sql — PostgreSQL schema and RLS policies
-- backend/README.md — backend architecture notes
-
-### Scripts
-- scripts/seed-supabase.ts — inserts seed data into Supabase
-
-### Source Code
-- src/App.tsx — main app layout and board UI
-- src/context/AppContext.tsx — global state and app actions
-- src/services/api.ts — single data access boundary
-- src/services/supabaseClient.ts — Supabase client setup
-- src/services/supabaseApi.ts — database queries and row mapping
-- src/types.ts — domain models for jobs, companies, applications, etc.
-- src/components — UI screens and reusable components
-
----
-
-## 5. How the Frontend Works
-
-The app starts in App.tsx and uses AppProvider from AppContext.
-
-### App flow
-1. The app loads companies, jobs, and applications.
-2. It builds the board UI using filtered job data.
-3. Users can search, sort, filter, save, and apply.
-4. Application status changes follow a simulated hiring lifecycle.
-5. Data is stored in Supabase and read from there.
-
-### Global app state
-AppContext manages:
-
-- companies
-- jobs
-- applications
-- selected job
-- saved job IDs
-- recent job IDs
-- active filters
-- dashboard tab
-- toasts and UI notifications
-
-This state is kept in memory while the app runs, and some browser-specific UI preferences are stored in localStorage.
-
----
-
-## 6. How the Backend Works
-
-CareerHub uses a single backend: Supabase.
-
-There is no local custom Node API server. Instead, the frontend talks directly to Supabase through a typed service layer.
-
-### Data flow
-- UI calls functions from src/services/api.ts
-- api.ts delegates to src/services/supabaseApi.ts
-- supabaseApi.ts queries Supabase tables
-- Supabase returns rows from PostgreSQL
-- data is mapped from snake_case database fields to camelCase app objects
-
-### Key backend files
-- src/services/supabaseClient.ts
-  - creates the Supabase client from env vars
-- src/services/supabaseApi.ts
-  - all database reads and writes happen here
-- backend/schema.sql
-  - database tables, indexes, and RLS rules
-
----
-
-## 7. Real Data Storage
-
-The app stores real data in Supabase tables.
-
-### Tables in schema.sql
-- companies
-- jobs
-- applications
-- job_alerts
-
-### What each table stores
-#### companies
-- company id
-- name
-- sector
-- location
-- size
-- founded year
-- about text
-- brand color
-
-#### jobs
-- title
-- company id
-- location
-- remote / hybrid / on-site status
-- job type
-- level
-- category
-- salary range
-- tags
-- summary
-- responsibilities
-- requirements
-- benefits
-
-#### applications
-- candidate name
-- email
-- cover note
-- portfolio
-- expected salary
-- status
-- timeline of hiring progress
-
-#### job_alerts
-- email
-- criteria
-- created date
-
-Important: saved jobs and recent jobs are intentionally stored in localStorage, not in Supabase, because they are user-preference data rather than shared application data.
-
----
-
-## 8. How Jobs Are Loaded
-
-When the app starts, it calls:
-
-- fetchCompanies()
-- fetchJobs()
-- fetchApplications()
-
-These functions read data from Supabase.
-
-### Job filtering and sorting
-Filters are applied in api.ts using pure client-side logic.
-
-It supports:
-- text search by role or company
-- location matching
-- remote-only toggles
-- category filters
-- type filters
-- level filters
-- minimum salary filter
-- newest or salary sorting
-
----
-
-## 9. How Job Posting Works
-
-When an employer posts a job:
-
-1. PostJobForm sends the payload to AppContext
-2. publishJob calls api.postJob
-3. supabaseApi.postJob does the following:
-   - creates or finds the company row
-   - inserts a new row into jobs
-4. the job appears instantly on the board
-
-This is saved into Supabase, not the browser memory.
-
----
-
-## 10. How Application Submission Works
-
-When a candidate applies for a job:
-
-1. ApplyModal collects the candidate details
-2. AppContext calls api.createApplication
-3. Supabase inserts a new application row
-4. the job’s applicants count is incremented
-5. the app updates the candidate dashboard and toast notifications
-
-Applications store a full timeline such as:
-- submitted
-- reviewing
-- shortlisted
-- interview
-- offered
-- rejected
-- withdrawn
-
-This lifecycle is persisted in the applications table and kept in the JSON timeline field.
-
----
-
-## 11. How Resume Matching Works
-
-The app includes a resume matching feature.
-
-### Process
-- user pastes resume text or uploads a resume
-- app extracts known skill keywords from the text
-- each job is scored against the resume skill set
-- the top matching jobs are shown as recommendations
-
-This is a client-side scoring engine and does not require a backend ML service.
-
----
-
-## 12. CI/CD Pipeline
-
-GitHub Actions is used to automate quality checks and deployments.
-
-### Workflow file
-- .github/workflows/ci-cd.yml
-
-### Jobs
-#### quality
-Runs on every push and PR.
-
-It does:
-- checkout repository
-- install dependencies
-- run TypeScript checks
-- run production build
-- upload build artifact
-
-#### deploy-production
-Runs only on the main branch.
-
-It does:
-- install dependencies
-- build the app
-- deploy to Vercel using the Vercel CLI
-
-This means the production site is automatically updated whenever code is pushed to main.
-
----
-
-## 13. Deployment Setup
-
-The project is hosted on Vercel.
-
-### Required Vercel configuration
-- project imported into Vercel
-- Vercel token created
-- project and org IDs saved as GitHub secrets
-
-### Required environment variables
-In Vercel project settings, the app expects:
-
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
-
-Optional but helpful:
-
-- VITE_APP_ENV=production
-
-The same values are also used locally in .env.local.
-
----
-
-## 14. Local Environment Setup
-
-The local project uses .env.local with values like:
-
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
-- SUPABASE_SERVICE_ROLE_KEY
-
-These are required for local development and seeding.
-
-### Local startup
-```bash
-npm install
-npm run dev
+# CareerHub technical documentation
+
+## 1. Product summary
+
+CareerHub is a single-page job platform for the Indian market. It combines a public job board, candidate workflow, employer publishing console, resume-to-role matching, and a Supabase persistence layer.
+
+The product is designed as a polished demonstration application. It uses real database reads and writes, while keeping authentication out of the demo path so the complete workflow can be evaluated quickly.
+
+## 2. Product workflows
+
+### Candidate workflow
+
+1. The board loads companies, jobs, and applications from Supabase.
+2. A candidate searches by role, skill, company, category, tag, or location.
+3. Results can be refined with category, contract type, experience level, remote-only, and minimum-salary filters.
+4. A candidate opens a job drawer to review the company, salary, workplace, responsibilities, requirements, benefits, similar roles, and careers URL.
+5. If the employer supplied a careers URL, the candidate can follow it from the job action bar or from inside the CareerHub application modal. This opens the employer's site in a new tab.
+6. The candidate can alternatively submit an application directly to CareerHub, save the role locally, or do both.
+7. The dashboard shows CareerHub applications, status, timeline notes, and withdrawal action.
+8. Newly created applications in the current browser session move through the demo lifecycle automatically: submitted, reviewing, shortlisted, and interview.
+
+### Employer workflow
+
+1. The employer opens **Post a job**.
+2. The form validates listing content, salary ordering, minimum content, and optional URL format.
+3. The service finds an existing company by name or creates a new company record.
+4. The service inserts the job into Supabase.
+5. The new job is added to the current board immediately and opened in the detail drawer.
+
+### Resume matching workflow
+
+1. A candidate drops a text-readable resume file, selects a file, pastes resume text, or loads a sample profile.
+2. The browser reads the text locally. Files are limited to 2 MB.
+3. The client extracts skills from a maintained dictionary.
+4. Each live job is scored against matching tags, title terms, category, and level.
+5. The top five non-zero matches are presented with a score, matched skills, salary, company, and actions to view or apply.
+
+No resume content is sent to Supabase by this feature.
+
+## 3. Application features
+
+### Board and discovery
+
+- Live role, company, and new-this-week counters.
+- Featured-role rail on larger screens.
+- Search input with `/` keyboard focus shortcut and location datalist suggestions.
+- Debounced search input and filter-result shimmer.
+- Active filter chips with individual removal and clear-all behavior.
+- Desktop filter rail and mobile filter panel.
+- Newest, salary-high-to-low, and salary-low-to-high sorting.
+- Eight-result initial view with load-more pagination.
+- Recently viewed strip backed by local storage.
+- Salary formatting in Indian units (K, L, and Cr).
+
+### Job details
+
+- Accessible modal drawer with Escape and backdrop close behavior.
+- Featured badge, company branding, salary band, posting age, workplace, contract type, and applicant count.
+- Responsibilities, requirements, benefits, company profile, similar roles, and external careers link.
+- Save, apply, already-applied, and employer-careers-link states.
+- Two application paths: submit through CareerHub or open the employer's external careers page.
+
+### Candidate dashboard
+
+- Active application count, interview-stage count, and saved-role count.
+- Applications and saved roles tabs.
+- Application status badges and progress timeline.
+- Timeline notes and dates stored with each application.
+- Confirm-before-withdraw flow for eligible applications.
+- Empty states that return users to the board.
+
+### Employer console
+
+The form supports:
+
+- Role title and company identity
+- Sector and location
+- Remote, hybrid, or on-site workplace
+- Full-time, contract, part-time, or internship type
+- Junior, mid-level, senior, or lead level
+- Engineering, design, product, data, marketing, sales, operations, or finance category
+- Minimum and maximum annual salary in INR
+- Comma-separated tags and benefits
+- Multi-line responsibilities and requirements
+- Role summary and optional careers URL
+
+### Communication and feedback
+
+- Success, informational, and lifecycle-update toast notifications.
+- Auto-dismiss and manual-dismiss toast behavior.
+- Empty database screen with a copyable seed command.
+- Setup screen when public Supabase variables are missing.
+- Backend error screen with a refresh action when initial data loading fails.
+
+## 4. Frontend architecture
+
+```text
+src/main.tsx
+  -> src/App.tsx
+     -> AppProvider (src/context/AppContext.tsx)
+        -> Shell and page components
+           -> src/services/api.ts
+              -> src/services/supabaseApi.ts
+                 -> src/services/supabaseClient.ts
+                    -> Supabase
 ```
 
-### Production build
-```bash
-npm run build
-```
+### `src/main.tsx`
 
-### Seed database
-```bash
-npm run seed
-```
+Bootstraps React, loads global CSS, and mounts `App` into the root element.
 
----
+### `src/App.tsx`
 
-## 15. Database Seeding
+Composes the shell, navigation, board, footer, job drawer, application modal, dashboard, employer page, loading states, and error state. It also owns board-specific presentation components such as search, result lists, active chips, and empty states.
 
-When the database is empty, the app needs seed data.
+### `src/context/AppContext.tsx`
 
-The seeding script reads from the local environment and inserts:
-- companies
-- jobs
-- applications
+Owns shared runtime state:
 
-This creates a working product demo without requiring manual SQL inserts for each record.
+- Companies, jobs, and applications
+- Selected job and application modal state
+- Current page and dashboard tab
+- Search and filter state
+- Saved and recently viewed IDs
+- Initial loading and backend error state
+- Toast messages
 
----
+It exposes typed actions for navigation, filtering, saving, applying, withdrawing, posting jobs, and subscribing to alerts.
 
-## 16. Security Notes
+### `src/services/api.ts`
 
-The app is intentionally designed with a demo-friendly security model.
+This is the public service boundary used by UI code. It delegates persistence to Supabase and contains pure client utilities for:
 
-### Public-facing values
-- VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are public client variables.
-- They are safe in the browser because Supabase policies protect the database.
+- Company lookup maps
+- Filtering and sorting
+- Application lifecycle simulation
+- Local-storage preferences
+- Salary/date formatting
+- Resume skill extraction and scoring
 
-### Admin-only value
-- SUPABASE_SERVICE_ROLE_KEY is sensitive and bypasses row-level security.
-- It should only be used in local seeding or admin scripts, never in the frontend or in Git.
+### `src/services/supabaseApi.ts`
 
----
+Contains all database reads and writes. It maps PostgreSQL snake_case rows to the application camelCase domain model and maps write payloads in the reverse direction.
 
-## 17. Current Deployment Status
+### `src/services/supabaseClient.ts`
 
-The app is live on Vercel and connected to Supabase.
+Creates the Supabase client only when both public Vite variables are present. Otherwise, the application renders the setup screen before mounting the data-dependent app shell.
 
-Production URL:
-- https://careerhub-eight.vercel.app/
+## 5. Data model
 
-GitHub repository:
-- https://github.com/kunaManoj/CareerHub
+The schema is in `backend/schema.sql` and is intended to mirror `src/types.ts`.
 
----
+### `companies`
 
-## 18. Final Summary
+Stores company identity and presentation data: ID, name, sector, location, size, founded year, about text, brand color, and timestamps.
 
-CareerHub is a full-stack job platform built as a frontend-first app with a live Supabase backend.
+### `jobs`
 
-The project demonstrates:
-- real database-driven job listing
-- live application flow
-- employer posting workflow
-- CI/CD deployment automation
-- proper environment-based deployment configuration
+Stores the complete listing: company relationship, title, location, workplace policy, type, level, category, annual INR salary bounds, tags, posting date, featured flag, applicant counter, summary, responsibilities, requirements, benefits, careers URL, and timestamps.
 
-In simple terms:
+Constraints restrict workplace, type, level, and category values. Salary values cannot be negative and the maximum cannot be below the minimum.
 
-- the frontend is React and Vite
-- the backend is Supabase PostgreSQL
-- the data lives in companies, jobs, applications, and job_alerts tables
-- the app is deployed on Vercel and updated automatically through GitHub Actions
+### `applications`
 
-This is a complete live SaaS-style demo project with real data persistence, deployment automation, and full app workflow coverage.
+Stores the candidate submission, job relationship, contact details, cover note, optional portfolio, expected salary, status, applied date, and a JSONB timeline. Status values include submitted, reviewing, shortlisted, interview, offered, rejected, and withdrawn.
+
+### `job_alerts`
+
+Stores an email address, a text description of the active filter criteria, and creation time.
+
+### Browser-local state
+
+Saved and recently viewed job IDs are stored in local storage under versioned keys. They are preferences tied to the current browser, not shared business records.
+
+## 6. Database access and mutation flows
+
+### Initial load
+
+The provider requests companies, jobs, and applications in parallel. Successful data is placed in state and the board renders. A rejected request produces the recoverable backend error screen rather than leaving the loading skeleton active indefinitely.
+
+### Apply
+
+`createApplication` creates an application ID, writes the submitted timeline entry, inserts the application, and increments the job's public applicant counter. The provider updates its local application and job state after the write succeeds.
+
+### Withdraw
+
+The service reads the application, appends a withdrawn timeline entry, updates the status, and reloads applications. The UI requires confirmation and disables withdrawal for offered, rejected, or already withdrawn applications.
+
+### Lifecycle simulation
+
+Only applications created during the current page session are advanced automatically. At approximately 12 seconds, 100 seconds, and 360 seconds, the client may move an application to reviewing, shortlisted, and interview. Each transition appends a timeline entry and is persisted through `persistProgress`.
+
+### Job publishing
+
+The service normalizes the company name into an ID seed, finds a matching company, creates one if needed, and inserts the job. The new company and job are merged into current React state.
+
+### Job alerts
+
+The current query, category selections, and remote-only setting are serialized into a readable criteria string and inserted with the subscriber email.
+
+## 7. Security model
+
+### Public client values
+
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are intended for browser use. They do not provide administrative access by themselves; database access is controlled by RLS policies.
+
+### Seeder secret
+
+`SUPABASE_SERVICE_ROLE_KEY` bypasses RLS and is used only by the local seeder. It must never be exposed to the browser, committed, or placed in a public deployment variable.
+
+### Current demo-mode policies
+
+The schema enables RLS but allows anonymous reads and writes for the demo workflow. This makes the board, application, employer, counter, and alert flows work without authentication. It is not an identity-secured production policy.
+
+### Production hardening
+
+For a real deployment:
+
+1. Enable Supabase Auth.
+2. Associate applications with authenticated candidate IDs.
+3. Restrict application reads and updates to the owning candidate or authorized employer.
+4. Restrict job creation and updates to authenticated employer accounts.
+5. Validate alert subscriptions and rate-limit public writes.
+6. Add server-side validation, abuse protection, audit logging, and privacy controls.
+
+## 8. Styling and accessibility
+
+- Tailwind utility classes are combined with design tokens and custom CSS in `src/index.css`.
+- The app uses semantic labels, `aria-label`, `role="dialog"`, `aria-modal`, `aria-live`, `aria-pressed`, and `role="switch"` where appropriate.
+- `:focus-visible` outlines are defined globally.
+- Modals support Escape and backdrop closing.
+- Responsive breakpoints provide mobile filter controls and adaptive layouts.
+- The `prefers-reduced-motion` media query disables or minimizes animations.
+
+## 9. CI/CD and deployment
+
+`.github/workflows/ci-cd.yml` runs on pushes to `main` and pull requests. Its quality job runs `npm ci`, `npm run typecheck`, and `npm run build`. The deployment job runs only for `main` after the quality job passes and invokes the Vercel CLI with repository secrets.
+
+The app is a static SPA hosted on Vercel and connects directly to Supabase at runtime. Setup instructions and required secrets are in `SETUP.md`.
+
+## 10. Validation and known scope
+
+The repository provides strict TypeScript checking and a production build as automated quality gates. It does not currently include a dedicated unit, integration, end-to-end, or lint script.
+
+The resume engine is deterministic keyword matching. The application lifecycle is a demonstration simulation. Anonymous demo-mode writes are intentionally permissive. These constraints are documented so an evaluator can distinguish implemented demo behavior from production hardening work.

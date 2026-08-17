@@ -52,22 +52,21 @@ export function OfferShowcase() {
               <Icon name="coins" className="h-4 w-4" />The CareerHub standard
             </p>
             <h2 className="mt-4 font-display text-[clamp(30px,4.5vw,48px)] font-bold leading-[1.02] tracking-tight text-ink-900">
-              Every range you see is a <span className="text-pine-600">real, verified range.</span>
+              Every range you see is a <span className="text-pine-600">published annual range.</span>
             </h2>
             <p className="mt-5 max-w-[520px] text-[15px] leading-relaxed text-ink-500">
-              No "competitive salary" black boxes. Every listing on CareerHub publishes its full
-              band — base, variable and equity — before you spend a single evening on an
-              application. Bands are checked at posting and refreshed quarterly, so the number
-              in the card is the number in the offer letter.
+              No "competitive salary" black boxes. Every listing on CareerHub publishes an
+              annual minimum and maximum before you spend a single evening on an application,
+              so candidates can compare opportunities with useful information.
             </p>
           </Reveal>
 
           <Reveal delay={120}>
             <div className="mt-7 flex flex-wrap gap-2.5">
               {[
-                { icon: "shield" as const, text: "94% of listings show a verified band" },
-                { icon: "calendar" as const, text: "Bands refreshed quarterly" },
-                { icon: "zap" as const, text: "Median first response: 36h" },
+                { icon: "shield" as const, text: "Salary range required" },
+                { icon: "calendar" as const, text: "Compare roles by city" },
+                { icon: "zap" as const, text: "Live board updates" },
               ].map((b) => (
                 <span key={b.text} className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-1.5 text-[12px] font-semibold text-ink-700 transition-all hover:-translate-y-0.5 hover:border-pine-200 hover:shadow-card">
                   <Icon name={b.icon} className="h-3.5 w-3.5 text-pine-600" />{b.text}
