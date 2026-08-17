@@ -182,6 +182,17 @@ export function JobDetail() {
             <Icon name={saved ? "bookmark-filled" : "bookmark"} filled={saved} className={`h-4 w-4 ${saved ? "anim-pop" : ""}`} />
             {saved ? "Saved" : "Save"}
           </button>
+          {job.careersUrl ? (
+            <a
+              href={job.careersUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="group flex flex-1 items-center justify-center gap-2 rounded-lg border border-pine-200 bg-pine-50 py-2.5 font-display text-[14px] font-bold text-pine-700 shadow-sm transition-all hover:bg-pine-100"
+            >
+              Apply on company site
+              <Icon name="arrow-up-right" className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          ) : null}
           {applied ? (
             <div className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-pine-100 py-2.5 font-display text-[14px] font-bold text-pine-700">
               <Icon name="check" className="h-4 w-4" strokeWidth={2.5} />
@@ -192,7 +203,7 @@ export function JobDetail() {
               onClick={() => openApply(job.id)}
               className="group flex flex-1 items-center justify-center gap-2 rounded-lg bg-pine-600 py-2.5 font-display text-[14px] font-bold text-paper shadow-sm transition-all hover:bg-pine-700 hover:shadow-lift active:scale-[0.985]"
             >
-              Apply now
+              Apply in CareerHub
               <Icon name="arrow-right" className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </button>
           )}

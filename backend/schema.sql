@@ -49,6 +49,7 @@ create table if not exists jobs (
   responsibilities text[] not null default '{}',
   requirements     text[] not null default '{}',
   benefits         text[] not null default '{}',
+  careers_url      text,
   created_at       timestamptz not null default now()
 );
 

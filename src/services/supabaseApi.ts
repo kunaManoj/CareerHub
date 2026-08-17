@@ -25,6 +25,7 @@ type JobRow = {
   salary_min: number; salary_max: number; tags: string[]; posted_at: string;
   featured: boolean; applicants: number; summary: string;
   responsibilities: string[]; requirements: string[]; benefits: string[];
+  careers_url?: string | null;
 };
 
 type ApplicationRecord = {
@@ -45,7 +46,7 @@ const toJob = (r: JobRow): Job => ({
   postedAt: new Date(r.posted_at).getTime(), featured: r.featured || undefined,
   applicants: r.applicants, summary: r.summary,
   responsibilities: r.responsibilities ?? [], requirements: r.requirements ?? [],
-  benefits: r.benefits ?? [],
+  benefits: r.benefits ?? [], careersUrl: r.careers_url ?? undefined,
 });
 
 const toApplication = (r: ApplicationRecord): Application => ({
@@ -195,6 +196,7 @@ export async function postJob(payload: PostJobPayload): Promise<{ job: Job; comp
     responsibilities: payload.responsibilities,
     requirements: payload.requirements,
     benefits: payload.benefits.length ? payload.benefits : ["Competitive compensation", "Flexible working arrangements"],
+    careers_url: payload.careersUrl?.trim() || null,
   };
   const { error } = await db.from("jobs").insert(jobRow);
   assertOk(error, "postJob.job");

@@ -41,6 +41,7 @@ export interface Job {
   responsibilities: string[];
   requirements: string[];
   benefits: string[];
+  careersUrl?: string;
 }
 
 export type AppStatus =
@@ -117,4 +118,5 @@ export interface PostJobPayload {
   responsibilities: string[];
   requirements: string[];
   benefits: string[];
+  careersUrl?: string;
 }

@@ -27,7 +27,7 @@ export function PostJobForm() {
   const [form, setForm] = useState({
     title: "", companyName: "", sector: "", location: "", remote: "Remote" as RemotePolicy,
     type: "Full-time" as JobType, level: "Mid-level" as JobLevel, category: "Engineering" as Category,
-    salaryMin: "", salaryMax: "", tags: "", summary: "", responsibilities: "", requirements: "", benefits: "",
+    salaryMin: "", salaryMax: "", tags: "", summary: "", responsibilities: "", requirements: "", benefits: "", careersUrl: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [publishing, setPublishing] = useState(false);
@@ -42,6 +42,9 @@ export function PostJobForm() {
     if (form.title.trim().length < 4) e.title = "Give the role a clear title";
     if (form.companyName.trim().length < 2) e.companyName = "Company name is required";
     if (form.location.trim().length < 2) e.location = "Where is this role based?";
+    if (form.careersUrl.trim() && !/^https?:\/\/.+/i.test(form.careersUrl.trim())) {
+      e.careersUrl = "Use a valid http or https careers URL";
+    }
     const min = Number(form.salaryMin);
     const max = Number(form.salaryMax);
     if (!form.salaryMin || Number.isNaN(min) || min < 100000) e.salaryMin = "Enter a realistic minimum (₹/yr)";
@@ -72,6 +75,7 @@ export function PostJobForm() {
       responsibilities: lines(form.responsibilities),
       requirements: lines(form.requirements),
       benefits: form.benefits.split(",").map((b) => b.trim()).filter(Boolean),
+      careersUrl: form.careersUrl.trim() || undefined,
     };
     await publishJob(payload);
     setPublishing(false);
@@ -120,6 +124,11 @@ export function PostJobForm() {
             <div>
               <label className={labelCls} htmlFor="pj-tags">Skills (comma-separated)</label>
               <input id="pj-tags" className={inputCls} placeholder="Go, Kubernetes, gRPC" value={form.tags} onChange={set("tags")} />
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="pj-careers">Careers link (optional)</label>
+              <input id="pj-careers" className={inputCls} placeholder="https://company.com/careers" value={form.careersUrl} onChange={set("careersUrl")} />
+              {err("careersUrl")}
             </div>
 
             <div>

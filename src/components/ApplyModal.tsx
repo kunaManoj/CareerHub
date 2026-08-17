@@ -134,6 +134,21 @@ export function ApplyModal() {
                 />
                 {errors.note && <p className="mt-1 text-[11px] font-semibold text-coral-500">{errors.note}</p>}
               </div>
+
+              {job.careersUrl && (
+                <div className="mt-4 rounded-xl border border-dashed border-pine-200 bg-pine-50 p-3.5">
+                  <p className="text-[12px] font-semibold text-ink-700">Prefer to apply on the company careers page?</p>
+                  <a
+                    href={job.careersUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-2 rounded-lg border border-pine-200 bg-paper px-3 py-2 text-[12px] font-bold text-pine-700 transition-all hover:bg-pine-100"
+                  >
+                    Redirect to company website
+                    <Icon name="arrow-up-right" className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between gap-3 border-t border-line bg-surface px-6 py-4">
